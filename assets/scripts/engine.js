@@ -28,6 +28,7 @@ class Game{
 	
 	start(){
 		this.reset();
+		this.attemptLoadSave();
 		this.running = true;
 		this.interval = setInterval(() => {
 			this.loop();
@@ -41,6 +42,21 @@ class Game{
 		this.refresh();
 	}
 
+	refresh(){
+		ctx.clearRect(0, 0, gameDOM.width, gameDOM.height);
+	}
+
+	attemptLoadSave(){
+		let save = this.getSaveFromStorage()
+		if(save){
+			this.currentChapter = save;
+		}
+	}
+
+	getSaveFromStorage(){
+		return parseInt(localStorage.getItem('currentChapter'));
+	}
+
 	loop(){	//represents one frame
 		if(this.running){
 			this.refresh();
@@ -48,9 +64,6 @@ class Game{
 			this.update();
 			this.frame += 1;
 		}
-	}
-	refresh(){
-		ctx.clearRect(0, 0, gameDOM.width, gameDOM.height);
 	}
 
 	draw(){
@@ -92,11 +105,30 @@ class Game{
 			this.currentChapter += 1;
 			this.chapters[this.currentChapter].start();
 			this.win();
+			this.makeSave(0);
 		}
 		else{
 			this.currentChapter += 1;
 			this.chapters[this.currentChapter].start();
+			this.makeSave(this.currentChapter);
 		}
+	}
+
+	win(){
+		this.over = true;
+		this.won = true;
+	}
+
+	lose(){
+		this.over = true;
+		this.won = false;
+		this.players.forEach(player => {
+			player.die();
+		});
+	}
+
+	makeSave(chapter){
+		localStorage.setItem('currentChapter', chapter);
 	}
 
 	addPlayer(player){
@@ -109,17 +141,6 @@ class Game{
 		});
 	}
 
-	lose(){
-		this.over = true;
-		this.won = false;
-		this.players.forEach(player => {
-			player.die();
-		});
-	}
-	win(){
-		this.over = true;
-		this.won = true;
-	}
 
 	displayLoseScreen(){
 		ctx.drawImage(sprite['gameOver'], gameDOM.width/2-192.5, this.gOAT);

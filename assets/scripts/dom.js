@@ -27,21 +27,21 @@ const pctx = playerDOM.getContext('2d');
 let sprite = {};
 for(var i = 1; i < 19; i++){
 	sprite[`dead${i}`] = new Image();
-	sprite[`dead${i}`].src = `./sprites/death/hero_death000${i}.png`;
+	sprite[`dead${i}`].src = `assets/sprites/death/hero_death000${i}.png`;
 }
 for(var i = 1; i < 10; i++){
 	sprite[`run${i}`] = new Image();
 	sprite[`runl${i}`] = new Image();
 	sprite[`idle${i}`] = new Image();
 	sprite[`jump${i}`] = new Image();
-	sprite[`run${i}`].src = `./sprites/run/hero_run000${i}.png`;
-	sprite[`runl${i}`].src = `./sprites/runl/hero_run000${i}.png`;
-	sprite[`idle${i}`].src = `./sprites/idle/hero_idle000${i}.png`;
-	sprite[`jump${i}`].src = `./sprites/jump/hero_jump000${i}.png`;
+	sprite[`run${i}`].src = `assets/sprites/run/hero_run000${i}.png`;
+	sprite[`runl${i}`].src = `assets/sprites/runl/hero_run000${i}.png`;
+	sprite[`idle${i}`].src = `assets/sprites/idle/hero_idle000${i}.png`;
+	sprite[`jump${i}`].src = `assets/sprites/jump/hero_jump000${i}.png`;
 }
 
 sprite['gameOver'] = new Image();
-sprite['gameOver'].src = `./sprites/title_gameOver.png`;
+sprite['gameOver'].src = `assets/sprites/title_gameOver.png`;
 
 
 let gameSpeed = 5;
