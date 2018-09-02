@@ -16,17 +16,20 @@ class Game{
   constructor(){
     this.players = [];
     this.chapters = [];
+    this.chapterSelector = [];
     this.interval = 0;
     this.currentChapter = 0;
     this.running = false;
     this.frame = 0;
     this.gOAT= 50
     this.gOATD = 'down';
-    this.over = false;
-    this.won = false;
+
   }
   
   start(){
+    game.players[0].dead = false;
+    this.over = false;
+    this.won = false;
     this.reset();
     this.attemptLoadSave();
     this.running = true;
@@ -122,8 +125,13 @@ class Game{
   lose(){
     this.over = true;
     this.won = false;
+    game.players[0].movingLeft = false;
+    game.players[0].movingRight = false;
     this.players.forEach(player => {
       player.die();
+    });
+    game.chapters[game.currentChapter].movingObjects.forEach(movingObject => {
+      movingObject.xSpeed = 0;
     });
   }
 
@@ -207,6 +215,9 @@ class Player{
   }
 
   pressHandler(e){
+    if(game.over){
+      return;
+    }
     let key = e.key.toLowerCase()
     if(key === this.left){
       this.movingLeft = true;
@@ -485,6 +496,7 @@ class Chapter{
     this.movingObjects = [];
     this.parent = game;
     game.chapters.push(this);
+    game.chapterSelector.push(this);
   }
 
   start(){
@@ -729,13 +741,7 @@ class Layer{
     this.ctx.clearRect(0,0, this.canvas.width, this.canvas.height);
   }
 }
-            
-
-const game = new Game;
-const pc = new Player({left: 'a', right: 'd', jumpkey:'space'}, game, gameDOM.width/2, 245);
-  
-  
-  
+              
 const app = document.querySelector('.app');
   //mobile controls
 function mobileTouch(e){
@@ -758,3 +764,7 @@ function mobileTouchEnd(e){
 
 app.addEventListener("touchstart", mobileTouch, false);
 app.addEventListener("touchend", mobileTouchEnd, false);
+
+
+const game = new Game;
+const pc = new Player({left: 'a', right: 'd', jumpkey:'space'}, game, gameDOM.width/2, 245);
