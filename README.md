@@ -17,4 +17,4 @@ Sprites Used:
    [Character]: <https://devilsworkshop.itch.io/platformer-free-2d-sprites-game-art-and-ui>
    [Chapter 1]: <https://raventale.itch.io/parallax-background>
    [Chapter 1+]: <https://free-game-assets.itch.io/free-horizontal-game-backgrounds>
-	[Demo]: <https://nairorox.github.io>
+	[Demo]: <https://nairorox.usermd.net/2d-platform.html>
