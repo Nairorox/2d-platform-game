@@ -102,9 +102,13 @@ class Game{
   }
 
   goToNextChapter(){
+    if(scriptInterval){
+      clearInterval(scriptInterval);
+    }
     pc.reset();
+    this.saveTime();
     this.clearAllLayers();
-    if(this.currentChapter >= this.chapters.length - 2){
+    if(this.currentChapter >= this.chapters.length - 2){  //GAME FINISHED SCENARIO
       this.currentChapter += 1;
       this.chapters[this.currentChapter].start();
       this.win();
@@ -114,6 +118,16 @@ class Game{
       this.currentChapter += 1;
       this.chapters[this.currentChapter].start();
       this.makeSave(this.currentChapter);
+    }
+  }
+
+  saveTime(){
+    this.chapters[this.currentChapter].chapterFinished = Date.now();
+    let chapterTime =this.chapters[this.currentChapter].chapterFinished - this.chapters[this.currentChapter].chapterStarted;
+    localStorage.setItem(`ch${this.currentChapter}`, this.chapters[this.currentChapter].chapterFinished - this.chapters[this.currentChapter].chapterStarted);
+    let bestTime = localStorage.getItem(`ch${this.currentChapter}best`);
+    if(!bestTime || bestTime > chapterTime){
+      localStorage.setItem(`ch${this.currentChapter}best`, chapterTime);
     }
   }
 
@@ -169,6 +183,19 @@ class Game{
       ctx.fillText(`You've won!`, 140, 120)
       ctx.font = "60px arial"
       ctx.fillText(`Thanks for playing this little demo`, 0, 320)
+      ctx.font = "20px arial"
+      let totalTime = 0;
+      let bestTime = 0;
+      for(let i = 0; i < game.chapters.length - 1; i += 1){
+        let chapterTime = Number(localStorage.getItem(`ch${i}`));
+        let chapterBest = Number(localStorage.getItem(`ch${i}best`));;
+        totalTime += chapterTime
+        bestTime += chapterBest
+        ctx.fillText(`chapter ${i+1} time: ${millisToMinutesAndSeconds(chapterTime)}`, 300, 420 + i*60)
+        ctx.fillText(`chapter ${i+1} best: ${millisToMinutesAndSeconds(chapterBest)}`, 300, 440 + i*60)
+      }
+      ctx.fillText(`Total time: ${millisToMinutesAndSeconds(totalTime)}`, 0, 420)
+      ctx.fillText(`Your best time: ${millisToMinutesAndSeconds(bestTime)}`, 0, 460)
   }
 
 
@@ -184,7 +211,7 @@ class Game{
 }
 
 class Player{
-  constructor(controls, game = null, x = 100, y = 275, r = 10, w = 120, h = 110){
+  constructor(controls, game = null, x = 100, y = 500, r = 10, w = 120, h = 110){
     this.x = x;
     this.y = y;
     this.r = r;
@@ -271,9 +298,9 @@ class Player{
     if(this.dead){
       pctx.drawImage(sprite[`dead${game.frame%18+1}`], this.x - this.w/2, this.y - this.h/2, this.w, this.h)
     }
-    else if(this.inJump){
-      this.drawJump();
-    }
+    //else if(this.inJump){
+     // this.drawJump();
+    //}
     else if(this.movingLeft){
       pctx.drawImage(sprite[`runl${game.frame%8+1}`], this.x - this.w/2, this.y-this.h/2, this.w, this.h)
     }
@@ -361,20 +388,11 @@ class Player{
   }
 
   jumpHandler(){
-    this.jumpTick += 2 * this.jumpDirection;
-    if(this.jumpTick >40){
-      this.jumpTick -= 1 * this.jumpDirection;
+    if(this.jumpTick > -15){  
+    this.jumpTick -= 1;
     }
-    if(this.jumpTick >= 60){
-      if(this.jumpDirection == 1){
-        this.jumpDirection = -1;
-      }
-    }
-    else if(this.jumpTick <= 30 && this.jumpDirection == -1){
-      this.finishJump();
-      return;
-    }
-    this.y -= ((this.jumpTick / 30) * this.jumpDirection * gameSpeed);
+    this.y -= this.jumpTick/2;
+
   }
 
   finishJump(){
@@ -390,6 +408,7 @@ class Player{
           this.drivingOnWall(wall);
           this.standingAt = wall;
           this.falling = false;
+          pc.finishJump();
         }
         this.preventOverjumping(wall);
     });
@@ -480,7 +499,7 @@ class Player{
   reset(){
     this.standingAt = null;
     this.realX = 500;
-    this.y = 275;
+    this.y = 500;
   }
 }
 
@@ -503,6 +522,7 @@ class Chapter{
     if(this.runAtStart){
       this.runAtStart();
     }
+      this.chapterStarted = Date.now()
   }
 
   addWall(wall){
@@ -513,7 +533,7 @@ class Chapter{
     }
   }
 
-  setRunAtStart(func){
+  setChapterScript(func){
     this.runAtStart = func;
   }
 
@@ -541,7 +561,7 @@ class Chapter{
 
 
 class Wall{  //chapter
-  constructor(x, y, width, height, chapter, fill, color = '#000000', moving = false, xSpeed = 0, display = true, autoAdd = true, stopAt = 0){
+  constructor(x, y, width, height, chapter, fill, color = '#000000', moving = false, xSpeed = 0, display = true, autoAdd = true, stopAt = 0, opacity = 1){
     this.x = x;
     this.realX = x;
     this.y = y;
@@ -556,6 +576,7 @@ class Wall{  //chapter
     this.stopAt = stopAt;
     this.colObject = false;
     this.display = display;
+    this.alpha = opacity;
     if(autoAdd){
       chapter.addWall(this);
     }
@@ -576,7 +597,13 @@ class Wall{  //chapter
 
   fillDraw(){
     ctx.fillStyle = this.color;
+    if(this.alpha != 1.0){
+      ctx.globalAlpha = this.alpha
+    }
     ctx.fillRect(this.x, this.y, this.width, this.height);
+    if(ctx.globalAlpha != 1.0){
+      ctx.globalAlpha = 1.0;
+    }
     ctx.fillStyle = '#000000';
   }
 
@@ -660,8 +687,8 @@ class Wall{  //chapter
 }
 
 class KillingWall extends Wall{
-  constructor(x, y, width, height, chapter, fill, color = '#000000', moving = false, xSpeed = 0, display = true, autoAdd = true, stopAt = 0){
-    super(x, y, width, height, chapter, fill, color, moving, xSpeed, display, autoAdd, stopAt);
+  constructor(x, y, width, height, chapter, fill, color = '#000000', moving = false, xSpeed = 0, display = true, autoAdd = true, stopAt = 0, opacity = 1){
+    super(x, y, width, height, chapter, fill, color, moving, xSpeed, display, autoAdd, stopAt, opacity);
     chapter.killingWalls.push(this);
   }
 
@@ -767,4 +794,4 @@ app.addEventListener("touchend", mobileTouchEnd, false);
 
 
 const game = new Game;
-const pc = new Player({left: 'a', right: 'd', jumpkey:'space'}, game, gameDOM.width/2, 245);
+const pc = new Player({left: 'a', right: 'd', jumpkey:'space'}, game, gameDOM.width/2, 500);

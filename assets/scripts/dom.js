@@ -12,6 +12,15 @@
 //	https://free-game-assets.itch.io/free-horizontal-game-backgrounds
 
 
+
+function millisToMinutesAndSeconds(millis) {
+  var minutes = Math.floor(millis / 60000);
+  var seconds = ((millis % 60000) / 1000).toFixed(0);
+  return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+}
+
+
+
 const gameDOM = document.querySelector('.app__game')
 const ctx = gameDOM.getContext('2d');
 const layersGroup = [];
